@@ -9,6 +9,9 @@
 #include <geometry_msgs/Pose.h>
 
 class Project;
+namespace move3d
+{
+class HumanMgr;
 
 /**
  * @brief The SceneManager class provide interface between ROS and the move3d scene and project.
@@ -17,8 +20,8 @@ class Project;
 class SceneManager
 {
 public:
-    SceneManager();
-    SceneManager(const std::string &p3d_path);
+    SceneManager(ros::NodeHandle *nh);
+    SceneManager(ros::NodeHandle *nh,const std::string &p3d_path);
     ~SceneManager();
 
     /**
@@ -66,6 +69,8 @@ public:
     /// as updateRobotPose(string,Pose)
     bool updateObject(const std::string &name, const geometry_msgs::Pose &pose);
 
+    bool updateHuman(const std::string &name, const geometry_msgs::Pose &base_pose, const std::map<std::string,geometry_msgs::Pose> &joints);
+
     /**
      * @brief set the matching of ROS DoF names and move3d ones.
      * @param robot_name the name of the robot
@@ -106,6 +111,9 @@ public:
      */
     void setP3dPath(const std::string &p3dPath);
 
+    std::string scePath() const;
+    void setScePath(const std::string &scePath);
+
     /**
      * @brief save the scenario, ie. the positions and configurations of all objects and robots
      * @param path the path where to save the scenario
@@ -118,25 +126,57 @@ public:
     Eigen::Affine3d getFrameTransform() const;
     void setFrameTransform(const Eigen::Affine3d &frame_change);
 
-private:
-    /// called in the constructor only
-    void preInit();
-    std::string _p3dPath;
+    /**
+     * @brief updateAcceptBaseOnly indicates the possibility to consider only the base position of an agent.
+     * @return
+     *
+     * When True, calls to updateRobot with empty dof_values will result in the same as calling updateRobotPose.
+     * Otherwise the robot is not updated.
+     * @see setUpdateAcceptBaseOnly()
+     */
+    bool updateAcceptBaseOnly() const;
+    /**
+     * @brief setUpdateAcceptBaseOnly
+     * @param updateAcceptBaseOnly
+     * @see updateAcceptBaseOnly()
+     */
+    void setUpdateAcceptBaseOnly(bool updateAcceptBaseOnly);
 
-    std::set<std::string> _modules_to_activ;
+    //getter / setters
 
-    Project *_project;
+    Project *project() const;
+    void setProject(Project *project);
+
+    ros::NodeHandle *nh() const;
+    void setNh(ros::NodeHandle *nh);
 
     typedef std::map<std::string,std::string> NameMap_t;
     typedef std::map<uint,uint> UintMap_t;
     typedef  std::map<std::string,NameMap_t> JointCorrespName_t;
     typedef std::map<std::string,UintMap_t> JointCorrespIndex_t;
 
+
+private:
+    /// called in the constructor only
+    void preInit();
+    ros::NodeHandle *_nh;
+    std::string _p3dPath;
+    std::string _scePath;
+
+    std::set<std::string> _modules_to_activ;
+
+    Project *_project;
+
     JointCorrespName_t _jointCorrespNames;
     JointCorrespIndex_t _jointCorrespIndex;
 
+    HumanMgr *_humanMgr;
+
     Eigen::Affine3d _frame_transform;
+
+    bool _updateAcceptBaseOnly;
 
 };
 
+}
 #endif // SCENEMANAGER_H

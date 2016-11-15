@@ -1,4 +1,6 @@
 #include "move3d_ros_lib/scenemanager.h"
+#include "move3d_ros_lib/humanmgr.h"
+
 #include <libmove3d/planners/API/project.hpp>
 #include <ros/ros.h>
 #include <libmove3d/planners/API/scene.hpp>
@@ -11,19 +13,22 @@
 #include <libmove3d/planners/utils/Geometry.h>
 //#include <libmove3d/p3d/proto/p3d_rw_scenario_proto.h>
 //#include <libmove3d/include/device.h>
+#include <libmove3d/include/Collision-pkg.h>
 #include <libmove3d/include/P3d-pkg.h>
 
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
-SceneManager::SceneManager():
-    _p3dPath(""), _project(0)
+namespace move3d
+{
+SceneManager::SceneManager(ros::NodeHandle *nh):
+    _nh(nh),_p3dPath(""),_scePath(""), _project(0), _updateAcceptBaseOnly(0)
 {
     preInit();
 }
 
-SceneManager::SceneManager(const std::string &p3d_path):
-    _p3dPath(p3d_path), _project(0)
+SceneManager::SceneManager(ros::NodeHandle *nh, const std::string &p3d_path):
+    _nh(nh),_p3dPath(p3d_path),_scePath(""), _project(0), _updateAcceptBaseOnly(0)
 {
     _frame_transform = Eigen::Affine3d();
     preInit();
@@ -58,11 +63,19 @@ bool SceneManager::createScene()
         p3d_read_desc(_p3dPath.c_str());
         p3d_col_set_mode(p3d_col_mode_pqp);
         p3d_col_start(p3d_col_mode_pqp);
+        if(_scePath.size()){
+            ROS_INFO("loading sce file %s",_scePath.c_str());
+            p3d_read_scenario(_scePath.c_str());
+        }
         global_Project = new Project(new Scene(XYZ_ENV));
         foreach(const std::string &n,_modules_to_activ){
             global_Project->addModule(n);
         }
         ok=global_Project->init();
+        for(uint i=0;i<global_Project->getActiveScene()->getNumberOfRobots();i++){
+            Robot *r=global_Project->getActiveScene()->getRobot(i);
+            r->setAndUpdate(*r->getInitialPosition());
+        }
     }
     if(ok){
         _project=global_Project;
@@ -70,7 +83,9 @@ bool SceneManager::createScene()
         ROS_ERROR("error on creating the move3d project");
         _project=NULL;
     }
-    return true;
+
+    _humanMgr = new HumanMgr(_nh,this);
+    return ok;
 }
 
 bool SceneManager::updateRobotPose(const std::string &name, const geometry_msgs::Pose &base_pose)
@@ -103,6 +118,11 @@ bool SceneManager::updateRobot(const std::string &name, const geometry_msgs::Pos
     std::vector<double> m3d_dofs;
 
     ok = convertConfRosToM3d(name,dof_values,m3d_dofs);
+    if(!ok && updateAcceptBaseOnly()){
+        ROS_WARN_ONCE("Updating %s: no or wrong configuration given, updating only base pose.",name.c_str());
+        ROS_DEBUG("Updating %s: no or wrong configuration given, updating only base pose.",name.c_str());
+        return updateRobotPose(name,base_pose);
+    }
     if(!ok){
         return false;
     }
@@ -156,6 +176,32 @@ bool SceneManager::updateObject(const std::string &name, const geometry_msgs::Po
     return updateRobotPose(name,pose);
 }
 
+Eigen::Affine3d pose2affine(const geometry_msgs::Pose &pose){
+    Eigen::Affine3d aff;
+    Eigen::Vector3d tr(pose.position.x,pose.position.y,pose.position.z);
+    Eigen::Quaterniond q(pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z);
+    aff=Eigen::Translation3d(pose.position.x,pose.position.y,pose.position.z);
+    //aff.rotate(q);
+    aff*=q;
+    for(uint i=0;i<3;i++){
+        ROS_DEBUG("%f %f",aff.translation()[i],tr[i]);
+    }
+    return aff;
+}
+
+bool SceneManager::updateHuman(const std::string &name, const geometry_msgs::Pose &base_pose, const std::map<std::string, geometry_msgs::Pose> &joints)
+{
+
+    Eigen::Affine3d base;
+    std::map<std::string,Eigen::Affine3d> joints_tf;
+    base = pose2affine(base_pose);
+    typedef std::pair<std::string, geometry_msgs::Pose> Iterator;
+    foreach(Iterator it,joints){
+        joints_tf[it.first] = pose2affine(it.second);
+    }
+    return _humanMgr->setHumanPos(name,base,joints_tf);
+}
+
 int indexOfDof(Robot *r,const std::string &dof_name){
     for(unsigned int j=0;j<=r->getNumberOfJoints();j++){
         Joint *joint=r->getJoint(j);
@@ -196,6 +242,8 @@ bool SceneManager::setDofNameOrdered(const std::string &robot_name, const std::v
     if(ok){
         Robot *r = _project->getActiveScene()->getRobotByName(robot_name);
         const NameMap_t &corresp_names = corresp_names_it->second;
+        if(dof_names.size() == 0)
+            ROS_WARN("setDofNameOrdered: dof_names is empty, will not be abble to set joint name correspondance");
         for(unsigned int i=0;i<dof_names.size();++i){
             const std::string &dof_name = dof_names[i];
             NameMap_t::const_iterator name_pair_it = corresp_names.find(dof_name);
@@ -270,6 +318,36 @@ void SceneManager::preInit()
     //init move3d logger
     logm3d::initializePlannerLogger();
 }
+std::string SceneManager::scePath() const
+{
+    return _scePath;
+}
+
+void SceneManager::setScePath(const std::string &scePath)
+{
+    _scePath = scePath;
+}
+
+ros::NodeHandle *SceneManager::nh() const
+{
+    return _nh;
+}
+
+void SceneManager::setNh(ros::NodeHandle *nh)
+{
+    _nh = nh;
+}
+
+bool SceneManager::updateAcceptBaseOnly() const
+{
+    return _updateAcceptBaseOnly;
+}
+
+void SceneManager::setUpdateAcceptBaseOnly(bool updateAcceptBaseOnly)
+{
+    _updateAcceptBaseOnly = updateAcceptBaseOnly;
+}
+
 Eigen::Affine3d SceneManager::getFrameTransform() const
 {
     return _frame_transform;
@@ -302,4 +380,16 @@ bool SceneManager::saveScenario(const std::string &path)
     if(!ok)
         ROS_ERROR("failed to save scenario");
     return ok;
+}
+Project *SceneManager::project() const
+{
+    return _project;
+}
+
+void SceneManager::setProject(Project *project)
+{
+    _project = project;
+}
+
+
 }

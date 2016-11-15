@@ -2,6 +2,8 @@
 #include "move3d_ros_lib/scenemanager.h"
 #include <ros/service_server.h>
 
+namespace move3d
+{
 SaveScenarioSrv::SaveScenarioSrv(SceneManager *sceneMgr, ros::NodeHandle *node):
     _sceneMgr(sceneMgr),_node(node),_srv(0)
 {
@@ -26,5 +28,7 @@ bool SaveScenarioSrv::save(move3d_ros_lib::SaveScenarioRequest &req, move3d_ros_
     res.success=ok;
 
     return true;
+}
+
 }
 

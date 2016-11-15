@@ -1,0 +1,12 @@
+<class_libraries>
+    <library path="libmove3d_human_updater_default_plugins">
+      <class type="move3d::SingleJoint2dUpdater" base_class_type="move3d::BaseHumanUpdater">
+        <description>This class updates from a single joint + height (parameter) to a "rayman"-style human in Move3d</description>
+      </class>
+    </library>
+    <library path="libmove3d_human_updater_hand_head_plugin">
+      <class type="move3d::HeadHandUpdater" base_class_type="move3d::BaseHumanUpdater">
+        <description>This class updates from 2 poses representing the head and the right hand to a "rayman"-style human in Move3d</description>
+      </class>
+    </library>
+</class_libraries>

@@ -21,6 +21,8 @@ ENDIF(UNIX)
 find_package(catkin REQUIRED COMPONENTS
   toaster_msgs
   message_generation
+  pluginlib
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -39,12 +41,16 @@ INCLUDE_directories(${MOVE3D_INCLUDE_DIRS})
 LINK_DIRECTORIES(${MOVE3D_LIBRARY_DIRS} )
 SET(LIBS ${LIBS} ${MOVE3D_LIBRARIES})
 
+include_directories(${INCLUDE_DIRS})
 
 ## Generate services in the 'srv' folder
 add_service_files(FILES
     SaveScenario.srv
 )
 generate_messages()
+
+add_definitions(-DUSE_LIGHT_PLANNER -DUSE_GRASP_PLANNING)
+
 
 ###################################
 ## catkin specific configuration ##
@@ -57,9 +63,10 @@ generate_messages()
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES move3d_ros_lib
+  LIBRARIES move3d_ros_lib move3d_human_updater_default_plugins move3d_human_updater_hand_head_plugin
   CATKIN_DEPENDS toaster_msgs message_runtime
-  DEPENDS MOVE3D-PLANNERS libmove3d
+  #DEPENDS MOVE3D-PLANNERS libmove3d
+  DEPENDS Eigen3 Boost
 )
 
 ###########
@@ -79,6 +86,16 @@ add_library(move3d_ros_lib
   src/move3d_ros_lib.cpp
   src/scenemanager.cpp
   src/savescenariosrv.cpp
+  src/humanmgr.cpp
+  src/robots_tf_publisher.cpp
+)
+
+add_library(move3d_human_updater_default_plugins
+  src/plugins/single_joint_2d_updater.cpp
+)
+
+add_library(move3d_human_updater_hand_head_plugin
+  src/plugins/head_hand_updater.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -98,6 +115,18 @@ target_link_libraries(move3d_ros_lib
   ${catkin_LIBRARIES}
   ${LIBS}
 )
+target_link_libraries(move3d_human_updater_default_plugins
+  ${catkin_LIBRARIES}
+  ${LIBS}
+)
+target_link_libraries(move3d_human_updater_hand_head_plugin
+  ${catkin_LIBRARIES}
+  ${LIBS}
+)
+
+message("catkin_LIBRARIES: ${catkin_LIBRARIES}")
+message("catkin_INCLUDE_DIRS: ${catkin_INCLUDE_DIRS}")
+message("INCLUDE_DIRS: ${INCLUDE_DIRS}")
 
 #############
 ## Install ##

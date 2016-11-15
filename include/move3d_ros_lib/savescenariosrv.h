@@ -6,6 +6,8 @@
 
 #include <move3d_ros_lib/SaveScenario.h>
 
+namespace move3d
+{
 class SceneManager;
 
 /**
@@ -35,5 +37,6 @@ private:
     ros::NodeHandle *_node;
     ros::ServiceServer *_srv;
 };
+}
 
 #endif // SAVESCENARIOSRV_H
