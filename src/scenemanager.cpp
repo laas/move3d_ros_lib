@@ -1,5 +1,6 @@
 #include "move3d_ros_lib/scenemanager.h"
 #include "move3d_ros_lib/humanmgr.h"
+#include "move3d_ros_lib/tools.h"
 
 #include <libmove3d/planners/API/project.hpp>
 #include <ros/ros.h>
@@ -325,7 +326,7 @@ std::string SceneManager::scePath() const
 
 void SceneManager::setScePath(const std::string &scePath)
 {
-    _scePath = scePath;
+    _scePath = Tools::getPath(scePath);
 }
 
 ros::NodeHandle *SceneManager::nh() const
@@ -365,8 +366,10 @@ std::string SceneManager::p3dPath() const
 
 void SceneManager::setP3dPath(const std::string &p3dPath)
 {
-    _p3dPath = p3dPath;
+    _p3dPath = Tools::getPath(p3dPath);
 }
+
+
 
 bool SceneManager::saveScenario(const std::string &path)
 {

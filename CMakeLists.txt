@@ -88,6 +88,7 @@ add_library(move3d_ros_lib
   src/savescenariosrv.cpp
   src/humanmgr.cpp
   src/robots_tf_publisher.cpp
+  src/tools.cpp
 )
 
 add_library(move3d_human_updater_default_plugins

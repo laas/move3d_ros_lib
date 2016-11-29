@@ -107,11 +107,16 @@ public:
     /**
      * @brief set the path to the p3d file used to describe the environment and its robots and objects.
      * @param p3dPath the path
-     * prefer absolute paths
+     * prefer absolute paths or ROS package:// url
      */
     void setP3dPath(const std::string &p3dPath);
 
     std::string scePath() const;
+    /**
+     * @brief set the path to a sce file to load on startup
+     * @param scePath the path
+     * prefer absolute paths or ROS package:// url
+     */
     void setScePath(const std::string &scePath);
 
     /**
