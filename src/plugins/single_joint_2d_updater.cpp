@@ -36,6 +36,9 @@ bool move3d::SingleJoint2dUpdater::computeConf(Robot *h, const Eigen::Affine3d &
     bool ok=true;
     q = *h->getCurrentPos();
     std::string torsojoint = "base_torso";
+    if(h->getHriAgent()->type==HRI_HERAKLES){
+        torsojoint="Pelvis";
+    }
     for(uint i=0;i<3;i++){
         q[i+6]=base.translation()[i];
     }
