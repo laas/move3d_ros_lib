@@ -12,12 +12,13 @@ variable must be set properly.
 
 See the documentation of [move3d][move3d-doc] for instructions on the
 installation of these libraries (you don't need the move3d-studio executable,
-only the libraries: libmove3d, libmove3d-planners, libmove3d-hri).
+only the libraries: libmove3d, libmove3d-planners, libmove3d-hri; check the
+specific installation instructions for ROS).
 
 move3d_ros_lib is a catkin package, so build it using `catkin_make install` in
 your catkin workspace.
 
-[move3d-doc]: https://www.openrobots.org/wiki/move3d
+[move3d-doc]: https://redmine.laas.fr/projects/move3d/wiki/Wiki
 
 ## Usage
 
