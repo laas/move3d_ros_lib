@@ -12,6 +12,7 @@
 #include <Eigen/Geometry>
 #include <sstream>
 #include <libmove3d/planners/utils/Geometry.h>
+#include <libmove3d/planners/database/semantics/Sem_AgentType.hpp>
 //#include <libmove3d/p3d/proto/p3d_rw_scenario_proto.h>
 //#include <libmove3d/include/device.h>
 #include <libmove3d/include/Collision-pkg.h>
@@ -279,6 +280,30 @@ bool SceneManager::fetchDofCorrespParam(const std::string &param_name, const std
     foreach(namePair_t v,name_map){
         ROS_INFO("%s %s",v.first.c_str(),v.second.c_str());
     }
+    return true;
+}
+
+bool SceneManager::fetchDofCorrespParam(const std::string &base_param_name)
+{
+    if(!_project){
+        ROS_DEBUG("project not set. Cannot fetch DoF Correspondances for all robots");
+        return false;
+    }
+    for(unsigned int i=0;i<project()->getActiveScene()->getNumberOfRobots();++i){
+        Robot *r=project()->getActiveScene()->getRobot(i);
+        if(r->isAgent() && r->getHriAgent()){
+            std::string type=Sem::AgentType::agentTypeToString(r->getHriAgent()->type);
+            if(!fetchDofCorrespParam(base_param_name+"/"+type,r->getName()) && !fetchDofCorrespParam(base_param_name+"/"+r->getName(),r->getName())){
+                ROS_WARN("no parameter %s/%s found for DoF correspondances for robot %s (nor %s/%s)",base_param_name.c_str(),r->getName().c_str(),r->getName().c_str(),base_param_name.c_str(),type.c_str());
+            }
+        }else if(r->isAgent()){
+            if(!fetchDofCorrespParam(base_param_name+"/"+r->getName(),r->getName())){
+                ROS_WARN("no parameter %s/%s found for DoF correspondances for robot %s",base_param_name.c_str(),r->getName().c_str(),r->getName().c_str());
+            }
+
+        }
+    }
+    return true;
 }
 
 bool SceneManager::convertConfRosToM3d(const std::string &robot_name, const std::vector<double> &ros_conf, std::vector<double> &m3d_conf)

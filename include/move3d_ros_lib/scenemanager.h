@@ -88,6 +88,7 @@ public:
     bool setDofNameOrdered(const std::string &robot_name,const std::vector<std::string> &dof_names);
 
     bool fetchDofCorrespParam(const std::string &param_name, const std::string &robot_name);
+    bool fetchDofCorrespParam(const std::string &base_param_name);
 
     /**
      * @brief convert a configuration from ROS to move3d.

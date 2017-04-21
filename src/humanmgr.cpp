@@ -119,7 +119,7 @@ bool HumanMgr::updateHumanList()
 {
     _humans.clear();
     XmlRpc::XmlRpcValue value;
-    if(_nh->getParam("human_mgmt",value)){
+    if(_nh->getParam("human_mgmt",value) && value.getType()==XmlRpc::XmlRpcValue::TypeStruct){
         for(XmlRpc::XmlRpcValue::iterator it=value.begin();it!=value.end();++it){
             _humans.push_back(it->first);
         }
