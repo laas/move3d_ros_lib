@@ -17,15 +17,15 @@ PLUGINLIB_EXPORT_CLASS(move3d::HeadHandUpdater, move3d::BaseHumanUpdater)
 namespace move3d {
 
 typedef std::map<std::string, Eigen::Affine3d>::const_iterator AffineMapConstIterator;
-tf::TransformBroadcaster tf_br;
 
 HeadHandUpdater::HeadHandUpdater()
 {
+    _tf_br = new tf::TransformBroadcaster();
 }
 
 HeadHandUpdater::~HeadHandUpdater()
 {
-
+    delete _tf_br;
 }
 
 bool HeadHandUpdater::update(Robot *h, const Eigen::Affine3d &base, const std::map<std::string, Eigen::Affine3d> &joints, const HumanSettings &settings)
@@ -50,11 +50,11 @@ bool HeadHandUpdater::computeConf(Robot *h, const Eigen::Affine3d &base, const s
     //tf for debug
     tf::Transform tr;
     tr.setFromOpenGLMatrix(base.data());
-    tf_br.sendTransform(tf::StampedTransform(tr,ros::Time::now(),"move3d_origin","/move3d_dbg/base"));
+    _tf_br->sendTransform(tf::StampedTransform(tr,ros::Time::now(),"move3d_origin","/move3d_dbg/base"));
     for (typeof(joints.begin()) it=joints.begin();it!=joints.end();it++){
         tf::Transform tr;
         tr.setFromOpenGLMatrix(it->second.data());
-        tf_br.sendTransform(tf::StampedTransform(tr,ros::Time::now(),"move3d_origin","/move3d_dbg/"+it->first));
+        _tf_br->sendTransform(tf::StampedTransform(tr,ros::Time::now(),"move3d_origin","/move3d_dbg/"+it->first));
     }
 
 
@@ -80,7 +80,7 @@ bool HeadHandUpdater::computeConf(Robot *h, const Eigen::Affine3d &base, const s
             updateFreeFlyer(q,joint->getIndexOfFirstDof(),rel_pos_torso);
             tf::Transform tr;
             tr.setFromOpenGLMatrix(rel_pos_torso.data());
-            tf_br.sendTransform(tf::StampedTransform(tr,ros::Time::now(),"/move3d_dbg/base","/move3d_dbg/"+joint->getName()));
+            _tf_br->sendTransform(tf::StampedTransform(tr,ros::Time::now(),"/move3d_dbg/base","/move3d_dbg/"+joint->getName()));
             //reset Rx and Ry
             q[joint->getIndexOfFirstDof()+3]=0;
             q[joint->getIndexOfFirstDof()+4]=0;
@@ -99,7 +99,7 @@ bool HeadHandUpdater::computeConf(Robot *h, const Eigen::Affine3d &base, const s
             updateFreeFlyer(q,joint->getIndexOfFirstDof(),rel_pos_head);
             tf::Transform tr;
             tr.setFromOpenGLMatrix(rel_pos_head.data());
-            tf_br.sendTransform(tf::StampedTransform(tr,ros::Time::now(),"/move3d_dbg/"+torsojoint_name,"/move3d_dbg/"+joint->getName()));
+            _tf_br->sendTransform(tf::StampedTransform(tr,ros::Time::now(),"/move3d_dbg/"+torsojoint_name,"/move3d_dbg/"+joint->getName()));
             assert(rel_pos_head.translation().norm() <0.00001);
         }else{
             ok=false;

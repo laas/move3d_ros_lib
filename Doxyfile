@@ -1,0 +1,43 @@
+# Doxyfile 1.8.6
+
+DOXYFILE_ENCODING      = UTF-8
+
+PROJECT_NAME           = "move3d_ros_lib"
+
+PROJECT_NUMBER         = 0.1.0
+
+PROJECT_BRIEF          = "move3d/ros API interface"
+
+OUTPUT_DIRECTORY       = doc/
+
+
+EXTRACT_ALL            = NO
+
+EXTRACT_PRIVATE        = NO
+
+
+HIDE_UNDOC_MEMBERS     = NO
+
+HIDE_UNDOC_CLASSES     = NO
+
+SHOW_INCLUDE_FILES     = YES
+
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO
+WARN_FORMAT            = "$file:$line: $text"
+WARN_LOGFILE           =
+
+
+INPUT                  =
+INPUT_ENCODING         = UTF-8
+FILE_PATTERNS          =
+RECURSIVE              = YES
+EXCLUDE                =
+EXCLUDE_SYMLINKS       = NO
+USE_MDFILE_AS_MAINPAGE = doc/API.md
+
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO

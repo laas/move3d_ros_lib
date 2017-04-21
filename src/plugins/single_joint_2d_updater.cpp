@@ -31,7 +31,7 @@ bool SingleJoint2dUpdater::update(Robot *h, const Eigen::Affine3d &base, const s
     return ok;
 }
 
-bool move3d::SingleJoint2dUpdater::computeConf(Robot *h, const Eigen::Affine3d &base, const std::map<std::string, Eigen::Affine3d> &joints, const move3d::HumanSettings &settings, RobotState &q)
+bool SingleJoint2dUpdater::computeConf(Robot *h, const Eigen::Affine3d &base, const std::map<std::string, Eigen::Affine3d> &joints, const HumanSettings &settings, RobotState &q)
 {
     bool ok=true;
     q = *h->getCurrentPos();

@@ -21,6 +21,38 @@
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
+int indexOfDof(Robot *r,const std::string &dof_name){
+    for(unsigned int j=0;j<=r->getNumberOfJoints();j++){
+        Joint *joint=r->getJoint(j);
+        if(joint->getName().find(dof_name) == 0){
+            if(joint->getNumberOfDof() == 1){
+                return joint->getIndexOfFirstDof();
+            }else{
+                //several dofs, have to read the dof index in the name
+                std::string subname = dof_name.substr(dof_name.find_first_of("0123456789"), joint->getName().size());
+                int index;
+                if ( ! (std::istringstream(subname) >> index) ){
+                    return -1;
+                }
+                return joint->getIndexOfFirstDof() + index;
+            }
+        }
+    }
+    return -1;
+}
+Eigen::Affine3d pose2affine(const geometry_msgs::Pose &pose){
+    Eigen::Affine3d aff;
+    Eigen::Vector3d tr(pose.position.x,pose.position.y,pose.position.z);
+    Eigen::Quaterniond q(pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z);
+    aff=Eigen::Translation3d(pose.position.x,pose.position.y,pose.position.z);
+    //aff.rotate(q);
+    aff*=q;
+    for(uint i=0;i<3;i++){
+        ROS_DEBUG("%f %f",aff.translation()[i],tr[i]);
+    }
+    return aff;
+}
+
 namespace move3d
 {
 SceneManager::SceneManager(ros::NodeHandle *nh):
@@ -178,19 +210,6 @@ bool SceneManager::updateObject(const std::string &name, const geometry_msgs::Po
     return updateRobotPose(name,pose);
 }
 
-Eigen::Affine3d pose2affine(const geometry_msgs::Pose &pose){
-    Eigen::Affine3d aff;
-    Eigen::Vector3d tr(pose.position.x,pose.position.y,pose.position.z);
-    Eigen::Quaterniond q(pose.orientation.w,pose.orientation.x,pose.orientation.y,pose.orientation.z);
-    aff=Eigen::Translation3d(pose.position.x,pose.position.y,pose.position.z);
-    //aff.rotate(q);
-    aff*=q;
-    for(uint i=0;i<3;i++){
-        ROS_DEBUG("%f %f",aff.translation()[i],tr[i]);
-    }
-    return aff;
-}
-
 bool SceneManager::updateHuman(const std::string &name, const geometry_msgs::Pose &base_pose, const std::map<std::string, geometry_msgs::Pose> &joints)
 {
 
@@ -202,26 +221,6 @@ bool SceneManager::updateHuman(const std::string &name, const geometry_msgs::Pos
         joints_tf[it.first] = pose2affine(it.second);
     }
     return _humanMgr->setHumanPos(name,base,joints_tf);
-}
-
-int indexOfDof(Robot *r,const std::string &dof_name){
-    for(unsigned int j=0;j<=r->getNumberOfJoints();j++){
-        Joint *joint=r->getJoint(j);
-        if(joint->getName().find(dof_name) == 0){
-            if(joint->getNumberOfDof() == 1){
-                return joint->getIndexOfFirstDof();
-            }else{
-                //several dofs, have to read the dof index in the name
-                std::string subname = dof_name.substr(dof_name.find_first_of("0123456789"), joint->getName().size());
-                int index;
-                if ( ! (std::istringstream(subname) >> index) ){
-                    return -1;
-                }
-                return joint->getIndexOfFirstDof() + index;
-            }
-        }
-    }
-    return -1;
 }
 
 bool SceneManager::setDofNameOrdered(const std::string &robot_name, const std::vector<std::string> &dof_names)

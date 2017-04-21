@@ -19,6 +19,11 @@ class SceneManager;
 class SaveScenarioSrv
 {
 public:
+    /**
+     * @brief SaveScenarioSrv constructor
+     * @param sceneMgr get the move3d scene from there
+     * @param node node handle for advertising the service
+     */
     SaveScenarioSrv(SceneManager *sceneMgr,ros::NodeHandle *node);
     ~SaveScenarioSrv();
 
