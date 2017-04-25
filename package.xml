@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>move3d_ros_lib</name>
-  <version>0.0.0</version>
+  <version>0.1.0</version>
   <description>The move3d_ros_lib package</description>
 
   <maintainer email="jules.waldhart@laas.fr">Jules Waldhart</maintainer>
