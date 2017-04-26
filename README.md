@@ -26,3 +26,8 @@ TODO
 
 You can refer to the documentation in the headers, and to move3d_facts package as an example.
 
+## Documentation
+
+You can build the API documentation with doxygen and the provided Doxyfile, or consult it [here][doc]
+
+[doc]: https://laas.github.io/move3d_ros_lib/ "API documentation of move3d_ros_lib"
