@@ -1,0 +1,4 @@
+<map id="move3d::BaseHumanUpdater" name="move3d::BaseHumanUpdater">
+<area shape="rect" id="node2" href="$classmove3d_1_1HeadHandUpdater.html" title="The HeadHandUpdater class updates base, hand and head. " alt="" coords="5,80,189,107"/>
+<area shape="rect" id="node3" href="$classmove3d_1_1SingleJoint2dUpdater.html" title="The SingleJoint2dUpdater class is a plugin class for the HumanMgr. It takes a 2D+rotation position an..." alt="" coords="213,80,412,107"/>
+</map>
